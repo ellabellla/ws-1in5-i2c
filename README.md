@@ -21,3 +21,6 @@ screen.draw_centered_text(
     false
 ).unwrap();
 ```
+
+## License
+This software is provided under the MIT license. Click [here](./LICENSE) to view.
