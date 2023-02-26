@@ -5,6 +5,19 @@ This library supports drawing images and text to the screen using the [rusttype 
 
 ## Example
 ```rust
+let font_data: &[u8] = include_bytes!("../font.ttf");
+let font: Font<'static> = Font::try_from_bytes(font_data).expect("Valid font");
+let scale10 = Scale::uniform(10.0);
+
 let screen = WS1in5::new(30, 1, 27).unwrap();
 screen.clear_all().unwrap();
+
+screen.draw_centered_text(
+    0,
+    0,
+    "Hello World",
+    &scale10,
+    &font,
+    false
+).unwrap();
 ```
