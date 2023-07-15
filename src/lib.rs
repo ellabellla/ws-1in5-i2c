@@ -239,18 +239,22 @@ impl WS1in5 {
     }
 
     /// Create image from text
-    pub fn create_text(&self, text: &str, scale: &Scale, font: &Font) -> (ImageBuffer<Luma<u8>, Vec<u8>>, usize, usize) {
+    pub fn create_text(&self, text: &str, scale: &Scale, font: &Font, flip: bool) -> (ImageBuffer<Luma<u8>, Vec<u8>>, usize, usize) {
         let (width, height, char_width) = self.get_text_size_full(text, scale, font);
         let mut image = GrayImage::new(width as u32, height as u32);
         for (i, char) in text.chars().enumerate() {
             image = drawing::draw_text(&image, Luma([15]), (i * char_width) as i32, 0, *scale, font, &char.to_string());
         }
-        (DynamicImage::ImageLuma8(image).rotate180().to_luma8(), width as usize, height as usize)
+        let mut img = DynamicImage::ImageLuma8(image);
+        if flip {
+            img = img.rotate180();
+        }
+        (img.to_luma8(), width as usize, height as usize)
     }
 
     /// Draw text to the screen at the specified coord (ignores new lines) (when flip = true, the screen is assumed to be upside down)
     pub fn draw_text(&mut self, x: usize, y: usize, text: &str, scale: &Scale, font: &Font, flip: bool) -> Result<(usize, usize), Error> {
-        let (image, width, height) = self.create_text(text, scale, font);
+        let (image, width, height) = self.create_text(text, scale, font, flip);
         let buffer = self.get_buffer(image.enumerate_pixels(), width, height)?;
 
         if flip {
@@ -264,7 +268,7 @@ impl WS1in5 {
 
     /// Draw text centered on the screen with a given offset (ignores new lines) (when flip = true, the screen is assumed to be upside down)
     pub fn draw_centered_text(&mut self, x: usize, y: usize, text: &str, scale: &Scale, font: &Font, flip: bool) -> Result<(usize, usize), Error> {
-        let (image, width, height) = self.create_text(text, scale, font);
+        let (image, width, height) = self.create_text(text, scale, font, flip);
         let buffer = self.get_buffer(image.enumerate_pixels(), width, height)?;
 
         if flip {
@@ -285,9 +289,9 @@ impl WS1in5 {
     pub fn draw_paragraph_at(&mut self, mut x: usize, mut y: usize, text: &str, scale: &Scale, font: &Font, flip: bool) -> Result<(usize, usize), Error> {
         for char in text.chars() {
              let (image, width, height) = if char.is_whitespace() {
-                self.create_text("_", scale, font)
+                self.create_text("_", scale, font, flip)
             } else {
-                self.create_text(&format!("{}", char), scale, font)
+                self.create_text(&format!("{}", char), scale, font, flip)
             };
 
             let buffer = self.get_buffer(image.enumerate_pixels(), width, height)?;
